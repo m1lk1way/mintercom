@@ -13,6 +13,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.all('/', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
+});
 app.get('/', function (req, res) {
 
 });
@@ -24,11 +29,13 @@ app.post('/', function (req, res) {
 	})
 	.then(function(){
 		console.log(req.body.messagetxt);
+		res.send('done');
 	})
+
 });
 app.listen(3000, function () {
 	api.getMe().then(function(data){
-   	console.log(data.username +' bot server is running on :3000 port');
+   		console.log(data.username +' bot server is running on :3000 port');
 	});
   
 });
