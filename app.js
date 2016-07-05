@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var server = app.listen();
+var server = app.listen(3000);
 
 var io = require('socket.io').listen(server);
 var telegram = require('telegram-bot-api');
@@ -31,7 +31,7 @@ app.use(function (req, res, next) {
 });
 api.getMe();
 app.get('/', function (req, res) {
-	res.sendFile('index.html', { root: __dirname });
+	res.sendfile('index.html', { root: __dirname });
 });
 api.on('message', function(message){
 	var chat_id = message.chat.id,
