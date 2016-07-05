@@ -3,13 +3,13 @@ var http = require('http').Server(express);
 var bodyParser = require('body-parser');
 var app = express();
 var io = require('socket.io')(http);*/
-var express = require('express');
-var app = express();
+
+/*var app = express();
 var server = app.listen(3000);
 
-var io = require('socket.io').listen(server);
+var io = require('socket.io').listen(server);*/
 
-var telegram = require('telegram-bot-api');
+/*var telegram = require('telegram-bot-api');
 var api = new telegram({
 	token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
 	updates: {
@@ -53,4 +53,28 @@ io.on('connection', function(socket){
 	});
 	socket.broadcast.to(socket.id).emit('my message', msg);
   });
-});
+});*/
+var express = require('express');
+const server = express()
+  .use((req, res) => res.sendFile(INDEX) )
+  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
+const io = socketIO(server);
+
+io.on('connection', (socket) => {
+	socket.join(socket.id);
+  console.log(socket.id);
+  console.log('a user connected');
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
+  socket.on('say to someone', function(id, msg){
+    socket.broadcast.to(id).emit('my message', msg);
+  });
+  socket.on('chat message', function(msg){
+    console.log('id: '+msg.id+' message: ' + msg.message);
+    api.sendMessage({
+    	chat_id: msg.recepient,
+		text: 'message from: '+msg.id+" text: "+msg.message
+	});
+	socket.broadcast.to(socket.id).emit('my message', msg);
+  });
