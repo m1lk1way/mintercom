@@ -56,10 +56,10 @@ io.on('connection', function(socket){
 });*/
 var express = require('express');
 const server = express()
-  .use((req, res) => res.sendFile(INDEX) )
+  .use((req, res) => res.sendFile('index.html') )
   .listen(3000, () => console.log(`Listening on ${ PORT }`));
 const io = socketIO(server);
-
+io.set('transports', ['websocket', 'flashsocket', 'htmlfile', 'xhr-polling', 'jsonp-polling']);
 io.on('connection', (socket) => {
 	socket.join(socket.id);
   console.log(socket.id);
