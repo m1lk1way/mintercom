@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var server = app.listen(3000);
+var server = app.listen(80);
 
 var io = require('socket.io').listen(server);
 var telegram = require('telegram-bot-api');
@@ -29,9 +29,7 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
-api.getMe().then(function(data){
-    console.log(data.username +' bot server is running on :3000 port');
-});
+api.getMe();
 app.get('/', function (req, res) {
 	res.sendFile('index.html', { root: __dirname });
 });
