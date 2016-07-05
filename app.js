@@ -1,7 +1,13 @@
-var telegram = require('telegram-bot-api');
-var express = require('express');
+/*var express = require('express');
+var http = require('http').Server(express);
 var bodyParser = require('body-parser');
 var app = express();
+var io = require('socket.io')(http);*/
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+var telegram = require('telegram-bot-api');
 var api = new telegram({
 	token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
 	updates: {
@@ -9,31 +15,10 @@ var api = new telegram({
 		get_interval: 1000
 	}
 });
-app.use(bodyParser.json()); 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.all('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
-});
 app.get('/', function (req, res) {
-
+	res.sendFile('client.html', { root: __dirname });
 });
-app.post('/', function (req, res) {
-	console.log(req.body)
-	api.sendMessage({
-		chat_id: req.body.chatid,
-		text: 'Сообщение от польз. #'+req.body.session+" :"+req.body.messagetxt
-	})
-	.then(function(){
-		console.log(req.body.messagetxt);
-		res.send('done');
-	})
-
-});
-app.listen(3000, function () {
+http.listen(3000, function () {
 	api.getMe().then(function(data){
    		console.log(data.username +' bot server is running on :3000 port');
 	});
@@ -45,9 +30,28 @@ api.on('message', function(message){
 	    
 	api.sendMessage({
 		chat_id: message.chat.id,
-		text: message.text != "лох" ? messageFrom + ' сказал: ' + message.text : 'сам лох' + message.chat.id
+		text: message.text != "hello" ? messageFrom + ' сказал: ' + message.text : 'hello World'
 	})
 	.then(function(message){
 		console.log(message.text);
 	})
+});
+io.on('connection', function(socket){
+	socket.join(socket.id);
+  console.log(socket.id);
+  console.log('a user connected');
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
+  socket.on('say to someone', function(id, msg){
+    socket.broadcast.to(id).emit('my message', msg);
+  });
+  socket.on('chat message', function(msg){
+    console.log('id: '+msg.id+' message: ' + msg.message);
+    api.sendMessage({
+    	chat_id: msg.recepient,
+		text: 'message from: '+msg.id+" text: "+msg.message
+	});
+	socket.broadcast.to(socket.id).emit('my message', msg);
+  });
 });
