@@ -3,10 +3,6 @@ var app = express();
 var server = app.listen(3000);
 
 var io = require('socket.io').listen(server);
-io.configure(function () {
-  io.set("transports", ["xhr-polling"]);
-  io.set("polling duration", 10);
-});
 var telegram = require('telegram-bot-api');
 var api = new telegram({
 	token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
@@ -14,6 +10,24 @@ var api = new telegram({
 		enabled: true,
 		get_interval: 1000
 	}
+});
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8888');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
 });
 api.getMe().then(function(data){
     console.log(data.username +' bot server is running on :3000 port');
