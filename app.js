@@ -5,8 +5,9 @@ var app = express();
 var io = require('socket.io')(http);*/
 var express = require('express');
 var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var server = app.listen(3000);
+
+var io = require('socket.io').listen(server);
 
 var telegram = require('telegram-bot-api');
 var api = new telegram({
@@ -16,14 +17,11 @@ var api = new telegram({
 		get_interval: 1000
 	}
 });
-app.get('/', function (req, res) {
-	res.sendFile('client.html', { root: __dirname });
+api.getMe().then(function(data){
+    console.log(data.username +' bot server is running on :3000 port');
 });
-http.listen(3000, function () {
-	api.getMe().then(function(data){
-   		console.log(data.username +' bot server is running on :3000 port');
-	});
-  
+app.get('/', function (req, res) {
+	res.send("server is running");
 });
 api.on('message', function(message){
 	var chat_id = message.chat.id,
