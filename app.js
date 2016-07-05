@@ -33,7 +33,7 @@ api.getMe().then(function(data){
     console.log(data.username +' bot server is running on :3000 port');
 });
 app.get('/', function (req, res) {
-	res.send('index.html');
+	res.sendFile('index.html', { root: __dirname });
 });
 api.on('message', function(message){
 	var chat_id = message.chat.id,
@@ -48,21 +48,19 @@ api.on('message', function(message){
 	})
 });
 io.on('connection', function(socket){
-	socket.join(socket.id);
-  console.log(socket.id);
   console.log('a user connected');
   socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-  socket.on('say to someone', function(id, msg){
-    socket.broadcast.to(id).emit('my message', msg);
+    api.sendMessage({
+      chat_id: 213345206,
+      text: 'user disconnected: '+socket.id
+    });
   });
   socket.on('chat message', function(msg){
     console.log('id: '+msg.id+' message: ' + msg.message);
+    socket.emit('pong message', { message: msg.message });
     api.sendMessage({
     	chat_id: msg.recepient,
-		text: 'message from: '+msg.id+" text: "+msg.message
-	});
-	socket.broadcast.to(socket.id).emit('my message', msg);
+		  text: 'message from: '+msg.id+" text: "+msg.message
+	  });
   });
 });
