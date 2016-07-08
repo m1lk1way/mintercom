@@ -12,21 +12,10 @@ var api = new telegram({
 	}
 });
 app.use(function (req, res, next) {
-
-    // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', 'http://mintercom.herokuapp.com:3000');
-
-    // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-    // Request headers you wish to allow
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
     res.setHeader('Access-Control-Allow-Credentials', true);
-
-    // Pass to next layer of middleware
     next();
 });
 api.getMe();
@@ -36,13 +25,21 @@ app.get('/', function (req, res) {
 api.on('message', function(message){
 	var chat_id = message.chat.id,
 	    messageFrom = message.chat.first_name +' '+ message.chat.last_name;
-	    
+	
 	api.sendMessage({
 		chat_id: message.chat.id,
 		text: message.text != "hello" ? messageFrom + ' сказал: ' + message.text : 'hello World'
 	})
 	.then(function(message){
-		console.log(message.text);
+    if (io.sockets.connected[sendTo]) {
+      io.sockets.connected[sendTo].emit('message', message);
+    }
+    else{
+      api.sendMessage({
+        chat_id: message.chat.id,
+        text: "this user not found";
+      })
+    }
 	})
 });
 io.on('connection', function(socket){
@@ -62,3 +59,9 @@ io.on('connection', function(socket){
 	  });
   });
 });
+function preProcessMessage(message){
+  var splitedMessage = message.split(" ");
+      sendTo = splitedMessage[0].slice(1),
+      messageToSend = splitedMessage[1];
+  return ({splitedMessage, sendTo, messageToSend});
+}
