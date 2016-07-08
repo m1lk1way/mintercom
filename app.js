@@ -1,16 +1,17 @@
-var express = require('express');
-var app = express();
-var server = app.listen(process.env.PORT || 3000);
+var express = require('express'),
+    app = express(),
+    server = app.listen(process.env.PORT || 3000),
+    io = require('socket.io').listen(server),
+    telegram = require('telegram-bot-api');
 
-var io = require('socket.io').listen(server);
-var telegram = require('telegram-bot-api');
 var api = new telegram({
-	token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
-	updates: {
-		enabled: true,
-		get_interval: 1000
-	}
+      token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
+      updates: {
+        enabled: true,
+        get_interval: 1000
+      }
 });
+var managerId = "";
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', 'http://mintercom.herokuapp.com:3000');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -20,19 +21,13 @@ app.use(function (req, res, next) {
 });
 api.getMe();
 app.get('/', function (req, res) {
-	res.sendfile('index.html', { root: __dirname });
+  res.sendFile('index.html', { root: __dirname });
 });
 api.on('message', function(message){
-	var chat_id = message.chat.id,
-      sendTo = splitedMessage[0].slice(1),
-	    messageFrom = message.chat.first_name +' '+ message.chat.last_name;
-	
-	api.sendMessage({
-		chat_id: message.chat.id,
-		text: message.text != "hello" ? messageFrom + ' сказал: ' + message.text : 'hello World'
-	})
-	.then(function(message){
-    if (io.sockets.connected[sendTo]) {
+  var splitedMessage = (message.text).split(" ")
+      sendToSocket = "/#"+splitedMessage.shift();
+      messageBody =  splitedMessage.join(" ");
+      io.sockets.in(sendToSocket).emit('direct message', { message: messageBody });
       io.sockets.connected[sendTo].emit('message', message);
     }
     else{
@@ -41,22 +36,23 @@ api.on('message', function(message){
         text: "this user not found";
       })
     }
-	})
 });
 io.on('connection', function(socket){
-  console.log('a user connected');
-  socket.on('disconnect', function(){
-    api.sendMessage({
-      chat_id: 213345206,
-      text: 'user disconnected: '+socket.id
-    });
+  var thisSocketId = socket.id;
+  console.log("user connected, his ID : " + thisSocketId);
+  socket.on('connected customer', function(data){
+    managerId = data;
   });
+
+  socket.on('disconnect', function(){
+    console.log("user disconnected, his id: " + thisSocketId);
+  });
+
   socket.on('chat message', function(msg){
-    console.log('id: '+msg.id+' message: ' + msg.message);
-    socket.emit('pong message', { message: msg.message });
+    io.sockets.in(thisSocketId).emit('pong message', { message: msg.message });
     api.sendMessage({
-    	chat_id: msg.recepient,
-		  text: 'message from: '+msg.id+" text: "+msg.message
-	  });
+      chat_id: managerId,
+      text: 'message from: '+thisSocketId+" text: "+msg.message
+    });
   });
 });
