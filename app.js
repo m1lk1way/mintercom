@@ -35,7 +35,6 @@ api.on('message', function(message){
 	})
 });
 io.on('connection', function(socket){
-  console.log('a user connected');
   socket.on('disconnect', function(){
     api.sendMessage({
       chat_id: 213345206,
@@ -43,11 +42,11 @@ io.on('connection', function(socket){
     });
   });
   socket.on('chat message', function(msg){
-    console.log('id: '+msg.id+' message: ' + msg.message);
-
-    socket.emit('pong message', { message: msg.message });
+    if (io.sockets.connected[msg.id]) {
+      io.sockets.connected[msg.id].emit('pong message', { message: msg.message });
+    }
     api.sendMessage({
-    	chat_id: msg.recepient,
+    	chat_id: 213345206,
 		  text: 'message from: '+msg.id+" text: "+msg.message
 	  });
   });
