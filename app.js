@@ -24,18 +24,10 @@ app.get('/', function (req, res) {
   res.sendFile('index.html', { root: __dirname });
 });
 api.on('message', function(message){
-  var splitedMessage = (message.text).split(" ")
-      sendToSocket = "/#"+splitedMessage.shift();
+  var splitedMessage = (message.text).split(" "),
+      sendToSocket = "/#"+splitedMessage.shift(),
       messageBody =  splitedMessage.join(" ");
       io.sockets.in(sendToSocket).emit('direct message', { message: messageBody });
-      io.sockets.connected[sendTo].emit('message', message);
-    }
-    else{
-      api.sendMessage({
-        chat_id: message.chat.id,
-        text: "this user not found";
-      })
-    }
 });
 io.on('connection', function(socket){
   var thisSocketId = socket.id;
