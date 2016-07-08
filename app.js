@@ -24,6 +24,7 @@ app.get('/', function (req, res) {
 });
 api.on('message', function(message){
 	var chat_id = message.chat.id,
+      sendTo = splitedMessage[0].slice(1),
 	    messageFrom = message.chat.first_name +' '+ message.chat.last_name;
 	
 	api.sendMessage({
@@ -59,9 +60,3 @@ io.on('connection', function(socket){
 	  });
   });
 });
-function preProcessMessage(message){
-  var splitedMessage = message.split(" ");
-      sendTo = splitedMessage[0].slice(1),
-      messageToSend = splitedMessage[1];
-  return ({splitedMessage, sendTo, messageToSend});
-}
