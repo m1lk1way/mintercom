@@ -3,9 +3,8 @@ var express = require('express'),
     server = app.listen(process.env.PORT || 3000),
     io = require('socket.io').listen(server),
     telegram = require('telegram-bot-api');
-
 var api = new telegram({
-      token: '217858149:AAEcK3srkLSNgFKfy8njbv7tFvEFY1Y8WUo',
+      token: process.env.GRAMBOTAPIKEY,
       updates: {
         enabled: true,
         get_interval: 1000
